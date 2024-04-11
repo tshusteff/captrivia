@@ -29,3 +29,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Java
+be/java/captrivia/dependency-reduced-pom.xml
+be/java/captrivia/target/*
