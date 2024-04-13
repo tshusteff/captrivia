@@ -33,3 +33,6 @@ dist-ssr
 # Java
 be/java/captrivia/dependency-reduced-pom.xml
 be/java/captrivia/target/*
+
+# Node
+be/node/build/*

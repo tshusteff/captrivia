@@ -1,6 +1,6 @@
 # captrivia-starter
 
-This repository serves as a starting point for captrivia solutions. You can use
+This repository serves as a starting point for solutions for Pulley's Captrivia takehome test. You can use
 this or you can create your own.
 
 ## Frontend
@@ -18,6 +18,6 @@ For backend, there's various starter languages.
 | Language   | Directory                      |
 |------------|--------------------------------|
 | Go         | [be/go](be/go)                 |
-| Javascript | [be/javascript](be/javascript) |
+| Node.js    | [be/node](be/node) |
 | Java       | [be/java](be/java)             |
 | Python     | [be/python](be/python)         |
