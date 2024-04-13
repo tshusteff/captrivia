@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express from 'express';
 
 import questions from './questions.json';
@@ -5,6 +6,7 @@ import utils from './utils';
 
 const PORT = 8080;
 const app = express();
+app.use(cors());
 
 // Randomize the question order
 utils.shuffle(questions);
