@@ -3,7 +3,8 @@ captrivia-be
 
 tmp
 
-# Below is junk from vite create app
+__pycache__
+__MACOSX
 
 # Logs
 logs
