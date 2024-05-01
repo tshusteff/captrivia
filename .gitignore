@@ -4,6 +4,7 @@ captrivia-be
 tmp
 
 __pycache__
+*.pyc
 __MACOSX
 
 # Logs
