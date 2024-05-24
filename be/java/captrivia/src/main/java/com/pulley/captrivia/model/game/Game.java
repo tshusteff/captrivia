@@ -2,39 +2,27 @@ package com.pulley.captrivia.model.game;
 
 public class Game {
 
+        private String id;
         private String name;
-        private double acc;
-        private double avgSec;
-        private int numCorrect;
-        private int numQuestion;
+        private int numQuestions;
+        // TODO will want a state variable I think
 
-        public Game(String name, double acc, double avgSec, int numCorrect, int numQuestion) {
+        public Game(String id, String name, int numQuestions) {
+            this.id = id;
             this.name = name;
-            this.acc = acc;
-            this.avgSec = avgSec;
-            this.numCorrect = numCorrect;
-            this.numQuestion = numQuestion;
+            this.numQuestions = numQuestions;
 
         }
 
+        public String getId() {
+        return id;
+    }
         public String getName() {
             return name;
         }
 
-        public double getAcc() {
-            return acc;
-        }
-
-        public double getAvgSec() {
-            return avgSec;
-        }
-
-        public int getNumCorrect() {
-            return numCorrect;
-        }
-
-        public int getNumQuestion() {
-            return numQuestion;
+        public int getNumQuestions() {
+            return numQuestions;
         }
 
     }

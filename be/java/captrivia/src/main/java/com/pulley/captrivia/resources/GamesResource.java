@@ -2,7 +2,6 @@ package com.pulley.captrivia.resources;
 
 import com.google.common.collect.ImmutableList;
 import com.pulley.captrivia.model.game.Game;
-import com.pulley.captrivia.model.leaderboard.LeaderboardEntry;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -19,10 +18,8 @@ public class GamesResource {
     @GET
     public List<Game> getGames() {
         List<Game> games = ImmutableList.of(
-            new Game("Game1", 89.79, .5, 1, 3 ),
-            new Game("Game2", 65.35,.5, 1, 2 ),
-            new Game("James", 15.92, .5, 1, 5),
-            new Game("Janice", 3.14, .5, 8, 7)
+            new Game("1", "Game1", 3 ),
+            new Game("2", "Game2",  2 )
         );
 
         return games;

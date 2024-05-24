@@ -1,8 +1,8 @@
 package com.pulley.captrivia;
 
+import be.tomcools.dropwizard.websocket.WebsocketBundle;
 import com.pulley.captrivia.model.questions.Question;
 import com.pulley.captrivia.model.questions.QuestionsLoader;
-import com.pulley.captrivia.resources.ConnectResource;
 import com.pulley.captrivia.resources.GamesResource;
 import com.pulley.captrivia.resources.LeaderboardResource;
 import io.dropwizard.core.Application;
@@ -16,6 +16,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class CaptriviaApp extends Application<CaptriviaAppConfiguration> {
+    private WebsocketBundle websocket = new WebsocketBundle();
     public static void main(String[] args) throws Exception {
         new CaptriviaApp().run(args);
     }
@@ -27,7 +28,8 @@ public class CaptriviaApp extends Application<CaptriviaAppConfiguration> {
 
     @Override
     public void initialize(Bootstrap<CaptriviaAppConfiguration> bootstrap) {
-        // nothing to do yet
+        super.initialize(bootstrap);
+        bootstrap.addBundle(websocket);
     }
 
     @Override
@@ -42,10 +44,10 @@ public class CaptriviaApp extends Application<CaptriviaAppConfiguration> {
         // Set up the resources
         LeaderboardResource leaderboardResource = new LeaderboardResource();
         environment.jersey().register(leaderboardResource);
-        ConnectResource connectResource = new ConnectResource();
-        environment.jersey().register(connectResource);
         GamesResource gamesResource = new GamesResource();
         environment.jersey().register(gamesResource);
+
+        websocket.addEndpoint(PlayerConnectServerEndpoint.class);
     }
 
     private void allowAllCORS(Environment environment) {
