@@ -5,6 +5,8 @@ import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 
 @ServerEndpoint("/connect")
@@ -12,7 +14,23 @@ import java.io.IOException;
 public class PlayerConnectServerEndpoint {
     @OnOpen
     public void open(Session session) {
-        log.info("Server: Session Open");
+        String queryString = session.getQueryString();
+        String playerNameParamValue = "";
+        log.info("Server: Session Open with name "+queryString);
+        Map<String, List<String>> paramMap = session.getRequestParameterMap();
+        for (Map.Entry<String, List<String>> entry : paramMap.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("name")) {
+                if (entry.getValue().size() > 0) {
+                    playerNameParamValue = entry.getValue().get(0);
+                    log.info("Server: Session Open welcome playerNameParamValue "+playerNameParamValue);
+                }
+            }
+        }
+        if ("".equals(playerNameParamValue)) {
+            log.info("Server: Session Open whoops no name");
+        } else {
+            log.info("Server: Session Open glad you are here "+playerNameParamValue);
+        }
     }
 
     @OnClose
