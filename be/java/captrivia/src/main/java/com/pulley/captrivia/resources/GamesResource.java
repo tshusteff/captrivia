@@ -7,22 +7,29 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Path("/games")
 @Produces(MediaType.APPLICATION_JSON)
 public class GamesResource {
+    static private List<Game> games = new ArrayList<Game>();
 
     // TODO: Fix this so that the data is not hardcoded and is in the right
-    // shape that the frontend expects, or maybe not worry about leaderboards at all!
+    // shape that the frontend expects
     @GET
     public List<Game> getGames() {
-        List<Game> games = ImmutableList.of(
-            new Game("1", "Game1", 3 ),
-            new Game("2", "Game2",  2 )
-        );
+//        List<Game> games = ImmutableList.of(
+//            new Game(UUID.fromString("1"), "Game1", 3 ),
+//            new Game(UUID.fromString("2"), "Game2",  2 )
+//        );
 
         return games;
+    }
+
+    public static void addGame(Game game) {
+        games.add(game);
     }
 
 }

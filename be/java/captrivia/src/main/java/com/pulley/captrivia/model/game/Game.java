@@ -1,28 +1,36 @@
 package com.pulley.captrivia.model.game;
 
+import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 public class Game {
 
-        private String id;
-        private String name;
-        private int numQuestions;
-        // TODO will want a state variable I think
+        private final UUID id;
+        private final String name;
+        private final int questionCount;
 
-        public Game(String id, String name, int numQuestions) {
+        private List<String> players = new ArrayList<String>();
+
+
+        public Game(UUID id, String name, int questionCount) {
             this.id = id;
             this.name = name;
-            this.numQuestions = numQuestions;
+            this.questionCount = questionCount;
 
         }
 
-        public String getId() {
-        return id;
-    }
+        public UUID getId() {
+            return id;
+        }
         public String getName() {
             return name;
         }
 
-        public int getNumQuestions() {
-            return numQuestions;
+        public int getQuestionCount() {
+            return questionCount;
         }
 
     }

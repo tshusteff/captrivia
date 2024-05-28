@@ -1,0 +1,5 @@
+{
+  "type":"create",
+  "payload":{"name":"New Game","question_count":5},
+  "nonce":"72a59c56-c62e-4f11-95bd-d126d0023b1e"
+}

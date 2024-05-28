@@ -1,8 +1,10 @@
 package com.pulley.captrivia.model.playercommand;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.Objects;
 
-public class PlayerCommandCreate {
+public class PlayerCommandCreate extends PlayerCommandType {
     String name;
     int question_count;
 
@@ -22,19 +24,16 @@ public class PlayerCommandCreate {
         return question_count;
     }
 
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof PlayerCommandCreate that)) return false;
         return getQuestion_count() == that.getQuestion_count() && getName().equals(that.getName());
     }
 
-    @Override
     public int hashCode() {
         return Objects.hash(getName(), getQuestion_count());
     }
 
-    @Override
     public String toString() {
         return "PlayerCommandCreate{" +
                 "name='" + name + '\'' +
