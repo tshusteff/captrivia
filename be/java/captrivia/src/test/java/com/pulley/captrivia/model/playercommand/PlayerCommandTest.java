@@ -10,6 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PlayerCommandTest {
     private static final ObjectMapper MAPPER = newObjectMapper();
+    private static final String playerCommandJSON = "{\n" +
+            "  \"type\":\"create\",\n" +
+            "  \"payload\":{\"name\":\"New Game\",\"question_count\":5},\n" +
+            "  \"nonce\":\"72a59c56-c62e-4f11-95bd-d126d0023b1e\"\n" +
+            "}";
 
     @Test
     void seralizesToJSON() throws Exception {
@@ -17,7 +22,7 @@ public class PlayerCommandTest {
         final PlayerCommand playerCommand = new PlayerCommand("72a59c56-c62e-4f11-95bd-d126d0023b1e", playerCommandCreate);
 
         final String expected = MAPPER.writeValueAsString(
-                MAPPER.readValue(getClass().getResource("../../resources/fixtures/player_command.json"), PlayerCommand.class));
+                MAPPER.readValue(playerCommandJSON, PlayerCommand.class));
 
         assertThat(MAPPER.writeValueAsString(playerCommand)).isEqualTo(expected);
     }
@@ -26,10 +31,8 @@ public class PlayerCommandTest {
     public void deserializesFromJSON() throws Exception {
         final PlayerCommandCreate playerCommandCreate = new PlayerCommandCreate("New Game", 5);
         final PlayerCommand playerCommand = new PlayerCommand("72a59c56-c62e-4f11-95bd-d126d0023b1e", playerCommandCreate);
-        assertThat(MAPPER.readValue(getClass().getResource("../../resources/fixtures/player_command.json"), PlayerCommand.class))
+        assertThat(MAPPER.readValue(playerCommandJSON, PlayerCommand.class))
                 .isEqualTo(playerCommand);
-//        PlayerCommand returnedPlayerCommand = MAPPER.readValue(getClass().getResource("../../resources/fixtures/player_command.json"), PlayerCommand.class);
-//        System.out.println("returnedPlayerCommand class is "+returnedPlayerCommand.getClass());
     }
 
 }

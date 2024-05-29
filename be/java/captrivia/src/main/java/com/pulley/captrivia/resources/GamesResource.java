@@ -20,11 +20,6 @@ public class GamesResource {
     // shape that the frontend expects
     @GET
     public List<Game> getGames() {
-//        List<Game> games = ImmutableList.of(
-//            new Game(UUID.fromString("1"), "Game1", 3 ),
-//            new Game(UUID.fromString("2"), "Game2",  2 )
-//        );
-
         return games;
     }
 

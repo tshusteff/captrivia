@@ -12,6 +12,10 @@ public class Game {
         private final String name;
         private final int questionCount;
 
+        private int playerCount = 0;
+
+        private String state = "";
+
         private List<String> players = new ArrayList<String>();
 
 
@@ -19,7 +23,6 @@ public class Game {
             this.id = id;
             this.name = name;
             this.questionCount = questionCount;
-
         }
 
         public UUID getId() {
@@ -33,4 +36,11 @@ public class Game {
             return questionCount;
         }
 
+        public int getPlayerCount() {
+            return playerCount;
+        }
+
+        public String getState() {
+            return state;
+        }
     }

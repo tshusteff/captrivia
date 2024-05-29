@@ -1,10 +1,12 @@
 package com.pulley.captrivia;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulley.captrivia.model.game.Game;
 import com.pulley.captrivia.model.playercommand.PlayerCommand;
 import com.pulley.captrivia.model.playercommand.PlayerCommandCreate;
-import com.pulley.captrivia.model.playercommand.PlayerCommandType;
+import com.pulley.captrivia.model.playerevent.PlayerEvent;
+import com.pulley.captrivia.model.playerevent.PlayerEventConnect;
 import com.pulley.captrivia.resources.GamesResource;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
@@ -20,7 +22,7 @@ import java.util.UUID;
 @Slf4j
 public class PlayerConnectServerEndpoint {
     @OnOpen
-    public void open(Session session) {
+    public void open(Session session) throws JsonProcessingException {
         String queryString = session.getQueryString();
         String playerNameParamValue = "";
         log.info("Server: Session Open with name "+queryString);
@@ -37,6 +39,17 @@ public class PlayerConnectServerEndpoint {
             log.info("Server: Session Open whoops no name");
         } else {
             log.info("Server: Session Open glad you are here "+playerNameParamValue);
+            PlayerEventConnect playerEventConnect = new PlayerEventConnect();
+            PlayerEvent playerEvent = new PlayerEvent(playerNameParamValue, playerEventConnect);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                String playerEventJSONString = mapper.writeValueAsString(playerEvent);
+                session.getBasicRemote().sendText(playerEventJSONString); // TODO. How to I reach all players? Not sure.
+            } catch (JsonProcessingException jsonProcessingException) {
+                log.error("Tried creating new PlayerEvent json but got error " + jsonProcessingException.getMessage());
+            } catch (IOException ioException) {
+                log.error("Tried sending playerEvent but got error " + ioException);
+            }
         }
     }
 
@@ -58,24 +71,16 @@ public class PlayerConnectServerEndpoint {
 //        session.getBasicRemote().sendText("pong");
         // convert the message to JSON
 
-        log.info("Server: Received Message: 0");
         try {
-            log.info("Server: Received Message: 1");
             ObjectMapper mapper = new ObjectMapper();
-            log.info("Server: Received Message: 2");
             PlayerCommand command = mapper.readValue(message, PlayerCommand.class);
-            log.info("Server: Received Message: 3");
 
             // check at the type
-            log.info("Server: Message nonce is " + command.getNonce());
-            log.info("Server: Message payload is " + command.getPayload());
-            log.info("Server: Message payload class is " + command.getPayload().getClass());
-
-            log.info("Server: Message class is " + command.getClass());
-//            if (command.getPayload().getClass() instanceof PlayerCommandCreate){
+            if (command.getPayload() instanceof PlayerCommandCreate){
+                log.info("Server: Message found instance of PlayerCommandCreate");
                 PlayerCommandCreate playerCommandCreate = (PlayerCommandCreate) command.getPayload();
-                GamesResource.addGame(new Game(UUID.fromString(command.getNonce()), "Game1", 3));
-//            }
+                GamesResource.addGame(new Game(UUID.fromString(command.getNonce()), playerCommandCreate.getName(), playerCommandCreate.getQuestion_count()));
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
         }
