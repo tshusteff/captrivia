@@ -10,7 +10,9 @@ public class PlayerCommand {
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="type", include=JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @JsonSubTypes({
             @JsonSubTypes.Type(value = PlayerCommandCreate.class, name = "create"),
-            @JsonSubTypes.Type(value = PlayerCommandJoin.class, name = "join")
+            @JsonSubTypes.Type(value = PlayerCommandJoin.class, name = "join"),
+            @JsonSubTypes.Type(value = PlayerCommandReady.class, name = "ready"),
+            @JsonSubTypes.Type(value = PlayerCommandStart.class, name = "start")
     })
     PlayerCommandType payload;
 

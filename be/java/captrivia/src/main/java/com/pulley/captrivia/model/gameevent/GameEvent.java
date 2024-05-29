@@ -10,7 +10,8 @@ public class GameEvent {
     UUID id;
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="type", include=JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = GameEventCreate.class, name = "game_create")
+            @JsonSubTypes.Type(value = GameEventCreate.class, name = "game_create"),
+            @JsonSubTypes.Type(value = GameEventPlayerCount.class, name = "game_player_count")
     })
     GameEventType payload;
 

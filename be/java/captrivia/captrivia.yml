@@ -1,1 +1,7 @@
 questionsFile: questions.json
+server:
+  requestLog:
+    appenders:
+      - type: console
+        filterFactories:
+          - type: leaderboard-filter-factory

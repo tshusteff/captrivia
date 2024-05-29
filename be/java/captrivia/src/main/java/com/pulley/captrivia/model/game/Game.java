@@ -14,13 +14,13 @@ public class Game {
 
         private int playerCount = 0;
 
-        private String state = "start";
+        private String state = "initialize";
 
         private List<String> players = new ArrayList<String>();
 
 
-        public Game(UUID id, String name, int questionCount) {
-            this.id = id;
+        public Game(String name, int questionCount) {
+            this.id = UUID.randomUUID();
             this.name = name;
             this.questionCount = questionCount;
         }
@@ -42,5 +42,9 @@ public class Game {
 
         public String getState() {
             return state;
+        }
+
+        public void addPlayer(String playerName) {
+            players.add(playerName);
         }
     }

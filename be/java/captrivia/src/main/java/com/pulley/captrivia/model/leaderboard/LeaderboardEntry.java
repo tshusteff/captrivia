@@ -1,6 +1,5 @@
 package com.pulley.captrivia.model.leaderboard;
 
-// TODO: This class should probably be moved somewhere else
 public class LeaderboardEntry {
     private String name;
     //        private double score;

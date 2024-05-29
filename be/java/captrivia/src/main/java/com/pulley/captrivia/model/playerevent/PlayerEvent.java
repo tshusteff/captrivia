@@ -9,7 +9,8 @@ public class PlayerEvent {
     String player;
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="type", include=JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = PlayerEventConnect.class, name = "player_connect")
+            @JsonSubTypes.Type(value = PlayerEventConnect.class, name = "player_connect"),
+            @JsonSubTypes.Type(value = PlayerEventDisconnect.class, name = "player_disconnect")
     })
     PlayerEventType payload;
 
