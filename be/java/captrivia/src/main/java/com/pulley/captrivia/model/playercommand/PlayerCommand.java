@@ -9,7 +9,8 @@ public class PlayerCommand {
     String nonce;
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, property="type", include=JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = PlayerCommandCreate.class, name = "create")
+            @JsonSubTypes.Type(value = PlayerCommandCreate.class, name = "create"),
+            @JsonSubTypes.Type(value = PlayerCommandJoin.class, name = "join")
     })
     PlayerCommandType payload;
 

@@ -3,8 +3,11 @@ package com.pulley.captrivia;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulley.captrivia.model.game.Game;
+import com.pulley.captrivia.model.gameevent.GameEvent;
+import com.pulley.captrivia.model.gameevent.GameEventCreate;
 import com.pulley.captrivia.model.playercommand.PlayerCommand;
 import com.pulley.captrivia.model.playercommand.PlayerCommandCreate;
+import com.pulley.captrivia.model.playercommand.PlayerCommandJoin;
 import com.pulley.captrivia.model.playerevent.PlayerEvent;
 import com.pulley.captrivia.model.playerevent.PlayerEventConnect;
 import com.pulley.captrivia.resources.GamesResource;
@@ -39,12 +42,14 @@ public class PlayerConnectServerEndpoint {
             log.info("Server: Session Open whoops no name");
         } else {
             log.info("Server: Session Open glad you are here "+playerNameParamValue);
+            // PlayerEventConnect
             PlayerEventConnect playerEventConnect = new PlayerEventConnect();
             PlayerEvent playerEvent = new PlayerEvent(playerNameParamValue, playerEventConnect);
             ObjectMapper mapper = new ObjectMapper();
             try {
                 String playerEventJSONString = mapper.writeValueAsString(playerEvent);
                 session.getBasicRemote().sendText(playerEventJSONString); // TODO. How to I reach all players? Not sure.
+                log.error("Tried sending text "+playerEventJSONString);
             } catch (JsonProcessingException jsonProcessingException) {
                 log.error("Tried creating new PlayerEvent json but got error " + jsonProcessingException.getMessage());
             } catch (IOException ioException) {
@@ -68,8 +73,6 @@ public class PlayerConnectServerEndpoint {
 //        if (!message.equals("ping")) {
 //            throw new IllegalArgumentException("Invalid message received: " + message);
 //        }
-//        session.getBasicRemote().sendText("pong");
-        // convert the message to JSON
 
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -80,9 +83,28 @@ public class PlayerConnectServerEndpoint {
                 log.info("Server: Message found instance of PlayerCommandCreate");
                 PlayerCommandCreate playerCommandCreate = (PlayerCommandCreate) command.getPayload();
                 GamesResource.addGame(new Game(UUID.fromString(command.getNonce()), playerCommandCreate.getName(), playerCommandCreate.getQuestion_count()));
+                // GameEventCreate
+                GameEventCreate gameEventCreate = new GameEventCreate();
+                GameEvent gameEvent = new GameEvent(UUID.fromString(command.getNonce()), gameEventCreate);
+                try {
+                    String gameEventJSONString = mapper.writeValueAsString(gameEvent);
+                    session.getBasicRemote().sendText(gameEventJSONString);
+                    log.error("Tried sending text "+gameEventJSONString);
+                } catch (JsonProcessingException jsonProcessingException) {
+                    log.error("Tried creating new GameEvent json but got error " + jsonProcessingException.getMessage());
+                } catch (IOException ioException) {
+                    log.error("Tried sending GameEvent but got error " + ioException);
+                }
+            }
+            if (command.getPayload() instanceof PlayerCommandJoin){
+                PlayerCommandJoin playerCommandJoin = (PlayerCommandJoin) command.getPayload();
+                // TODO: in my state somewhere, keep record that this player joined a game
+                // like get this specific game, and add this player to list of players in game
+                // also need to store this player's name somewhere
+                log.info("Exciting. New PLayer joins game "+playerCommandJoin.getGame_id());
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Got exception " + e);
         }
     }
 

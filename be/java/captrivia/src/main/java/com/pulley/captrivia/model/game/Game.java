@@ -14,7 +14,7 @@ public class Game {
 
         private int playerCount = 0;
 
-        private String state = "";
+        private String state = "start";
 
         private List<String> players = new ArrayList<String>();
 
