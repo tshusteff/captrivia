@@ -1,19 +1,16 @@
 package com.pulley.captrivia.model.gameevent;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class GameEventPlayerEnter extends GameEventType {
     String name;
-    String[] players;
+    List<String> players;
     Map<String, Boolean> players_ready;
     int question_count;
 
-    public GameEventPlayerEnter() {
-    }
-
-    public GameEventPlayerEnter(String name, String[] players, Map<String, Boolean> players_ready, int question_count) {
+    public GameEventPlayerEnter(String name, List<String> players, Map<String, Boolean> players_ready, int question_count) {
         this.name = name;
         this.players = players;
         this.players_ready = players_ready;
@@ -28,11 +25,11 @@ public class GameEventPlayerEnter extends GameEventType {
         this.name = name;
     }
 
-    public String[] getPlayers() {
+    public List<String> getPlayers() {
         return players;
     }
 
-    public void setPlayers(String[] players) {
+    public void setPlayers(List<String> players) {
         this.players = players;
     }
 
@@ -57,21 +54,19 @@ public class GameEventPlayerEnter extends GameEventType {
         if (this == o) return true;
         if (!(o instanceof GameEventPlayerEnter)) return false;
         GameEventPlayerEnter that = (GameEventPlayerEnter) o;
-        return getQuestion_count() == that.getQuestion_count() && getName().equals(that.getName()) && Arrays.equals(getPlayers(), that.getPlayers()) && getPlayers_ready().equals(that.getPlayers_ready());
+        return getQuestion_count() == that.getQuestion_count() && getName().equals(that.getName()) && getPlayers().equals(that.getPlayers()) && getPlayers_ready().equals(that.getPlayers_ready());
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(getName(), getPlayers_ready(), getQuestion_count());
-        result = 31 * result + Arrays.hashCode(getPlayers());
-        return result;
+        return Objects.hash(getName(), getPlayers(), getPlayers_ready(), getQuestion_count());
     }
 
     @Override
     public String toString() {
         return "GameEventPlayerEnter{" +
                 "name='" + name + '\'' +
-                ", players=" + Arrays.toString(players) +
+                ", players=" + players +
                 ", players_ready=" + players_ready +
                 ", question_count=" + question_count +
                 '}';

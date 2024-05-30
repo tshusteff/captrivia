@@ -3,9 +3,7 @@ package com.pulley.captrivia;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulley.captrivia.model.game.Game;
-import com.pulley.captrivia.model.gameevent.GameEvent;
-import com.pulley.captrivia.model.gameevent.GameEventCreate;
-import com.pulley.captrivia.model.gameevent.GameEventPlayerCount;
+import com.pulley.captrivia.model.gameevent.*;
 import com.pulley.captrivia.model.playercommand.PlayerCommand;
 import com.pulley.captrivia.model.playercommand.PlayerCommandCreate;
 import com.pulley.captrivia.model.playercommand.PlayerCommandJoin;
@@ -18,15 +16,11 @@ import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @ServerEndpoint("/connect")
 @Slf4j
 public class PlayerConnectServerEndpoint {
-    private EndpointConfig endpointConfig;
     private static List<Session> sessions = new ArrayList<>();
 
     private String getPlayerName(Session session) {
@@ -111,20 +105,34 @@ public class PlayerConnectServerEndpoint {
             if (command.getPayload() instanceof PlayerCommandCreate){
                 log.info("Server: Message found instance of PlayerCommandCreate");
                 PlayerCommandCreate playerCommandCreate = (PlayerCommandCreate) command.getPayload();
+                log.info("Server: Message found instance of PlayerCommandCreate. Game with name "+playerCommandCreate.getName()+" and question_count "+playerCommandCreate.getQuestion_count());
                 Game newGame = new Game(playerCommandCreate.getName(), playerCommandCreate.getQuestion_count());
                 GamesResource.addGame(newGame);
                 // GameEventCreate
-                GameEventCreate gameEventCreate = new GameEventCreate();
+                GameEventCreate gameEventCreate = new GameEventCreate(playerCommandCreate.getName(), playerCommandCreate.getQuestion_count());
                 GameEvent gameEvent = new GameEvent(newGame.getId(), gameEventCreate);
                 broadcastObject(gameEvent);
             }
             if (command.getPayload() instanceof PlayerCommandJoin) {
                 PlayerCommandJoin playerCommandJoin = (PlayerCommandJoin) command.getPayload();
-                log.info("Exciting. New PLayer joins game " + playerCommandJoin.getGame_id());
                 int playerCount = GamesResource.addPlayerToGame(playerCommandJoin.getGame_id(), getPlayerName(session));
                 GameEventPlayerCount gameEventPlayerCount = new GameEventPlayerCount(playerCount);
                 GameEvent gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerCount);
                 broadcastObject(gameEvent);
+
+                GameEventPlayerEnter gameEventPlayerEnter = new GameEventPlayerEnter(
+                        getPlayerName(session),
+                        GamesResource.getGame(playerCommandJoin.getGame_id()).getPlayers(),
+                        new HashMap<String, Boolean>(),
+                        GamesResource.getGame(playerCommandJoin.getGame_id()).getQuestion_count());
+                gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerEnter);
+                // TODO only send to player who joined game.
+                broadcastObject(gameEvent);
+
+                GameEventPlayerJoin gameEventPlayerJoin = new GameEventPlayerJoin(getPlayerName(session));
+                gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerJoin);
+                broadcastObject(gameEvent);
+
             }
         } catch (Exception e) {
             log.error("Got exception " + e);

@@ -29,19 +29,21 @@ public class GamesResource {
         games.add(game);
     }
 
-    // returns playercount
-    public static int addPlayerToGame(UUID gameId, String player) {
-        for (Game game : games) {
-            log.info("Existing game with id " + game.getId());
-        }
+    public static Game getGame(UUID gameId) {
         Game theGame = games.stream()
                 .filter( game -> game.getId().equals(gameId))
                 .findAny()
                 .orElse(null);
+        return theGame;
+    }
+
+    // returns playercount
+    public static int addPlayerToGame(UUID gameId, String player) {
+        Game theGame = getGame(gameId);
         if (theGame != null) {
             log.error("Adding player "+player+" to game with gameId "+gameId);
             theGame.addPlayer(player);
-            return theGame.getPlayerCount();
+            return theGame.getPlayer_count();
         } else {
             log.error("Did not find game with gameId "+gameId);
             return 0;

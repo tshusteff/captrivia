@@ -5,9 +5,6 @@ import java.util.Objects;
 public class GameEventCountdown extends GameEventType {
     int seconds;
 
-    public GameEventCountdown() {
-    }
-
     public GameEventCountdown(int seconds) {
         this.seconds = seconds;
     }

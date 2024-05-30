@@ -12,18 +12,18 @@ public class GameEventPlayerCount extends GameEventType {
         this.player_count = player_count;
     }
 
-    public int getQuestion_count() {
+    public int getPlayer_count() {
         return player_count;
     }
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof GameEventPlayerCount that)) return false;
-        return getQuestion_count() == that.getQuestion_count();
+        return getPlayer_count() == that.getPlayer_count();
     }
 
     public int hashCode() {
-        return Objects.hash(getQuestion_count());
+        return Objects.hash(getPlayer_count());
     }
 
     public String toString() {

@@ -6,9 +6,6 @@ import java.util.Objects;
 public class GameEventEnd extends GameEventType {
     PlayerScore[] scores;
 
-    public GameEventEnd() {
-    }
-
     public GameEventEnd(PlayerScore[] scores) {
         this.scores = scores;
     }

@@ -5,10 +5,7 @@ import java.util.Objects;
 public class GameEventPlayerJoin extends GameEventType {
     String player;
 
-    public GameEventPlayerJoin() {
-    }
-
-    public GameEventPlayerJoin(String player, int question_count) {
+    public GameEventPlayerJoin(String player) {
         this.player = player;
     }
 
