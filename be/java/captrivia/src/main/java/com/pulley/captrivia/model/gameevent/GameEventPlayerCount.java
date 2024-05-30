@@ -27,7 +27,7 @@ public class GameEventPlayerCount extends GameEventType {
     }
 
     public String toString() {
-        return "GameEventCreate{" +
+        return "GameEventPlayerCount{" +
                 "player_count=" + player_count +
                 '}';
     }

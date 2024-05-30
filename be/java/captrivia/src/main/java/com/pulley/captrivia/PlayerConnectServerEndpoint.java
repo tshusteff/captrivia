@@ -85,7 +85,7 @@ public class PlayerConnectServerEndpoint {
     public void close(Session session) {
         log.info("Server: Session Close");
         PlayerEventDisconnect playerEventDisconnect = new PlayerEventDisconnect();
-        PlayerEvent playerEvent = new PlayerEvent(playerName, playerEventDisconnect);
+        PlayerEvent playerEvent = new PlayerEvent(getPlayerName(session), playerEventDisconnect);
         broadcastObject(playerEvent);
         sessions.removeIf(currentSession -> currentSession.getId().equals(session.getId()));
     }
@@ -121,7 +121,7 @@ public class PlayerConnectServerEndpoint {
             if (command.getPayload() instanceof PlayerCommandJoin) {
                 PlayerCommandJoin playerCommandJoin = (PlayerCommandJoin) command.getPayload();
                 log.info("Exciting. New PLayer joins game " + playerCommandJoin.getGame_id());
-                int playerCount = GamesResource.addPlayerToGame(playerCommandJoin.getGame_id(), playerName);
+                int playerCount = GamesResource.addPlayerToGame(playerCommandJoin.getGame_id(), getPlayerName(session));
                 GameEventPlayerCount gameEventPlayerCount = new GameEventPlayerCount(playerCount);
                 GameEvent gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerCount);
                 broadcastObject(gameEvent);
