@@ -8,15 +8,24 @@ import java.util.UUID;
 //        E
 public class PlayerCommandAnswer extends PlayerCommandType {
     UUID game_id;
+    int index;
+    UUID question_id;
 
     public PlayerCommandAnswer() {
     }
 
-    public PlayerCommandAnswer(UUID game_id) {
+    public PlayerCommandAnswer(UUID game_id, int index, UUID question_id) {
+
         this.game_id = game_id;
+        this.index = index;
+        this.question_id = question_id;
     }
     public UUID getGame_id() {
         return game_id;
+    }
+    public int getIndex() {return index;}
+    public UUID getQuestion_id() {
+        return question_id;
     }
 
     public void setGame_id(UUID game_id) {
@@ -28,12 +37,11 @@ public class PlayerCommandAnswer extends PlayerCommandType {
         if (this == o) return true;
         if (!(o instanceof PlayerCommandAnswer)) return false;
         PlayerCommandAnswer that = (PlayerCommandAnswer) o;
-        return Objects.equals(getGame_id(), that.getGame_id());
+        return getIndex() == that.getIndex() && getGame_id().equals(that.getGame_id()) && getQuestion_id().equals(that.getQuestion_id());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getGame_id());
+        return Objects.hash(getGame_id(), getIndex(), getQuestion_id());
     }
-
 }

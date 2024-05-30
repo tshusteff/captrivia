@@ -18,21 +18,20 @@ import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-
 
 @ServerEndpoint("/connect")
 @Slf4j
 public class PlayerConnectServerEndpoint {
-    private String playerName;
-    @OnOpen
-    public void open(Session session) throws JsonProcessingException {
+    private EndpointConfig endpointConfig;
+    private static List<Session> sessions = new ArrayList<>();
+
+    private String getPlayerName(Session session) {
         String queryString = session.getQueryString();
-        String playerNameParamValue = "";
-        log.info("Server: Session Open with name "+queryString);
+        String playerNameParamValue = null;
         Map<String, List<String>> paramMap = session.getRequestParameterMap();
         for (Map.Entry<String, List<String>> entry : paramMap.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("name")) {
@@ -42,24 +41,43 @@ public class PlayerConnectServerEndpoint {
                 }
             }
         }
-        if ("".equals(playerNameParamValue)) {
+        return playerNameParamValue;
+    }
+
+    @OnOpen
+    public void open(Session session) throws JsonProcessingException {
+        String queryString = session.getQueryString();
+        String playerName = getPlayerName(session);
+        log.info("Server: Session Open with name "+playerName+".");
+        log.info("Server: Session Open welcome playerNameParamValue "+playerName);
+        if (playerName == null) {
             log.info("Server: Session Open whoops no name");
         } else {
-            log.info("Server: Session Open glad you are here "+playerNameParamValue);
-            playerName = playerNameParamValue;
+            log.info("Server: Session Open glad you are here "+playerName);
             // PlayerEventConnect
             PlayerEventConnect playerEventConnect = new PlayerEventConnect();
-            PlayerEvent playerEvent = new PlayerEvent(playerNameParamValue, playerEventConnect);
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                String playerEventJSONString = mapper.writeValueAsString(playerEvent);
-                session.getBasicRemote().sendText(playerEventJSONString); // TODO. How to I reach all players? Not sure.
-                log.error("Tried sending text "+playerEventJSONString);
-            } catch (JsonProcessingException jsonProcessingException) {
-                log.error("Tried creating new PlayerEvent json but got error " + jsonProcessingException.getMessage());
-            } catch (IOException ioException) {
-                log.error("Tried sending playerEvent but got error " + ioException);
+            PlayerEvent playerEvent = new PlayerEvent(playerName, playerEventConnect);
+            sessions.add(session);
+            broadcastObject(playerEvent);
+        }
+    }
+
+
+    private void broadcastObject(Object object) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String JSONString = mapper.writeValueAsString(object);
+            for (Session currSession : sessions) {
+                log.info("broadcastPlayerEvent: List of sessions, session with id "+currSession.getId()+"and queryString "+currSession.getQueryString());
+                if (currSession.isOpen()) {
+                    currSession.getBasicRemote().sendText(JSONString);
+                }
             }
+            log.info("Tried sending text "+JSONString);
+        } catch (JsonProcessingException jsonProcessingException) {
+            log.error("Tried creating new Object json but got error " + jsonProcessingException.getMessage());
+        } catch (IOException ioException) {
+            log.error("Tried sending Object but got error " + ioException);
         }
     }
 
@@ -68,18 +86,8 @@ public class PlayerConnectServerEndpoint {
         log.info("Server: Session Close");
         PlayerEventDisconnect playerEventDisconnect = new PlayerEventDisconnect();
         PlayerEvent playerEvent = new PlayerEvent(playerName, playerEventDisconnect);
-        // TODO go through the list of games and remove this player from them
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String playerEventJSONString = mapper.writeValueAsString(playerEvent);
-            session.getBasicRemote().sendText(playerEventJSONString); // TODO. How to I reach all players? Not sure.
-            log.error("Tried sending text "+playerEventJSONString);
-        } catch (JsonProcessingException jsonProcessingException) {
-            log.error("Tried creating new PlayerEvent json but got error " + jsonProcessingException.getMessage());
-        } catch (IOException ioException) {
-            log.error("Tried sending playerEvent but got error " + ioException);
-        }
-
+        broadcastObject(playerEvent);
+        sessions.removeIf(currentSession -> currentSession.getId().equals(session.getId()));
     }
 
     @OnError
@@ -90,13 +98,6 @@ public class PlayerConnectServerEndpoint {
     public void handleMessage(String message, Session session) throws IOException {
         log.info("Server: Received Message: {}", message);
         Set<Session> allSessions = session.getOpenSessions();
-        for (Session currSession : allSessions) {
-            try {
-                currSession.getBasicRemote().sendText("session with query string " + currSession.getQueryString());
-            } catch (IOException ioe) {
-                System.out.println(ioe.getMessage());
-            }
-        }
 
 //        if (!message.equals("ping")) {
 //            throw new IllegalArgumentException("Invalid message received: " + message);
@@ -115,15 +116,7 @@ public class PlayerConnectServerEndpoint {
                 // GameEventCreate
                 GameEventCreate gameEventCreate = new GameEventCreate();
                 GameEvent gameEvent = new GameEvent(newGame.getId(), gameEventCreate);
-                try {
-                    String gameEventJSONString = mapper.writeValueAsString(gameEvent);
-                    session.getBasicRemote().sendText(gameEventJSONString);
-                    log.error("Tried sending text "+gameEventJSONString);
-                } catch (JsonProcessingException jsonProcessingException) {
-                    log.error("Tried creating new GameEvent json but got error " + jsonProcessingException.getMessage());
-                } catch (IOException ioException) {
-                    log.error("Tried sending GameEvent but got error " + ioException);
-                }
+                broadcastObject(gameEvent);
             }
             if (command.getPayload() instanceof PlayerCommandJoin) {
                 PlayerCommandJoin playerCommandJoin = (PlayerCommandJoin) command.getPayload();
@@ -131,16 +124,7 @@ public class PlayerConnectServerEndpoint {
                 int playerCount = GamesResource.addPlayerToGame(playerCommandJoin.getGame_id(), playerName);
                 GameEventPlayerCount gameEventPlayerCount = new GameEventPlayerCount(playerCount);
                 GameEvent gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerCount);
-                try {
-                    String gameEventJSONString = mapper.writeValueAsString(gameEvent);
-                    session.getBasicRemote().sendText(gameEventJSONString);
-                    log.error("Tried sending text " + gameEventJSONString);
-                } catch (JsonProcessingException jsonProcessingException) {
-                    log.error("Tried creating new GameEvent json but got error " + jsonProcessingException.getMessage());
-                } catch (IOException ioException) {
-                    log.error("Tried sending GameEvent but got error " + ioException);
-                }
-
+                broadcastObject(gameEvent);
             }
         } catch (Exception e) {
             log.error("Got exception " + e);

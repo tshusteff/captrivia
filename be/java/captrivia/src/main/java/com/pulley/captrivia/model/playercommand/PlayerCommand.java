@@ -12,7 +12,8 @@ public class PlayerCommand {
             @JsonSubTypes.Type(value = PlayerCommandCreate.class, name = "create"),
             @JsonSubTypes.Type(value = PlayerCommandJoin.class, name = "join"),
             @JsonSubTypes.Type(value = PlayerCommandReady.class, name = "ready"),
-            @JsonSubTypes.Type(value = PlayerCommandStart.class, name = "start")
+            @JsonSubTypes.Type(value = PlayerCommandStart.class, name = "start"),
+            @JsonSubTypes.Type(value = PlayerCommandAnswer.class, name = "answer")
     })
     PlayerCommandType payload;
 

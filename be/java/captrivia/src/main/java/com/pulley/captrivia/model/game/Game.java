@@ -46,5 +46,6 @@ public class Game {
 
         public void addPlayer(String playerName) {
             players.add(playerName);
+            playerCount++;
         }
     }
