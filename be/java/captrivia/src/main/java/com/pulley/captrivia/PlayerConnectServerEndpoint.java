@@ -29,7 +29,6 @@ public class PlayerConnectServerEndpoint {
             if (entry.getKey().equalsIgnoreCase("name")) {
                 if (entry.getValue().size() > 0) {
                     playerNameParamValue = entry.getValue().get(0);
-                    log.info("Server: Session Open welcome playerNameParamValue "+playerNameParamValue);
                 }
             }
         }
@@ -54,33 +53,34 @@ public class PlayerConnectServerEndpoint {
         }
     }
 
-    // TODO do something with exceptions.
     private void broadcastObject(Object object) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String JSONString = mapper.writeValueAsString(object);
-            for (Session currSession : sessions) {
-                log.info("broadcastPlayerEvent: List of sessions, session with id "+currSession.getId()+"and queryString "+currSession.getQueryString());
-                if (currSession.isOpen()) {
-                    currSession.getBasicRemote().sendText(JSONString);
-                }
-            }
-            log.info("Tried sending text "+JSONString);
-        } catch (JsonProcessingException jsonProcessingException) {
-            log.error("Tried creating new Object json but got error " + jsonProcessingException.getMessage());
-        } catch (IOException ioException) {
-            log.error("Tried sending Object but got error " + ioException);
-        }
+        sendObjectToPlayersInOrOutOfGame(object, null, true);
     }
-    private void sendObjectToPlayers(Object object, List<String> players) {
+    private void sendObjectToPlayers(Object object, List<String> specifiedPlayersInGame) {
+        sendObjectToPlayersInOrOutOfGame(object, specifiedPlayersInGame, true);
+    }
+
+    private void sendObjectToNonPlayers(Object object, List<String> specifiedPlayersInGame) {
+        sendObjectToPlayersInOrOutOfGame(object, specifiedPlayersInGame, false);
+    }
+
+    // TODO do something with exceptions.
+    // for all players, use playersInGame as null
+    // otherwise, send playersInGame as list of players in game
+    // sendToActivePlayers = true to send to all players in game
+    // sendToActivePlayers = false to send to all players not in game
+    private void sendObjectToPlayersInOrOutOfGame(Object object, List<String> specifiedPlayersInGame, boolean sendToActivePlayers) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             String JSONString = mapper.writeValueAsString(object);
             for (Session currSession : sessions) {
                 if (currSession.isOpen()) {
-                    if (players.contains(getPlayerName(currSession))) {
-                        log.error("Sending Object "+object.toString()+" to player "+getPlayerName(currSession));
-                        currSession.getBasicRemote().sendText(JSONString);
+                    if (    specifiedPlayersInGame == null ||
+                            ((sendToActivePlayers) && (specifiedPlayersInGame.contains(getPlayerName(currSession)))) ||
+                            ((!sendToActivePlayers) && (!specifiedPlayersInGame.contains(getPlayerName(currSession))))
+                    ) {
+                            log.error("Sending Object " + object.toString() + " to player " + getPlayerName(currSession));
+                            currSession.getBasicRemote().sendText(JSONString);
                     }
                 }
             }
@@ -158,14 +158,32 @@ public class PlayerConnectServerEndpoint {
                 PlayerCommandReady playerCommandReady = (PlayerCommandReady) command.getPayload();
                 GameEventPlayerReady gameEventPlayerReady = new GameEventPlayerReady(getPlayerName(session));
                 GameEvent gameEvent = new GameEvent(playerCommandReady.getGame_id(), gameEventPlayerReady);
-                broadcastObject(gameEvent);
+                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandReady.getGame_id()).getPlayers());
+
             }
 
             if (command.getPayload() instanceof PlayerCommandStart) {
                 PlayerCommandStart playerCommandStart = (PlayerCommandStart) command.getPayload();
                 GameEventStart gameEventStart = new GameEventStart();
                 GameEvent gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStart);
-                broadcastObject(gameEvent);
+                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+
+                GameEventStateChange gameEventStateChange = new GameEventStateChange("countdown");
+                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStateChange);
+                sendObjectToNonPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+
+                GameEventCountdown gameEventCountdown = new GameEventCountdown(5);
+                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventCountdown);
+                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+
+                GameEventQuestion gameEventQuestion = new GameEventQuestion(
+                        playerCommandStart.getGame_id(),
+                        Arrays.asList("option1", "option2", "option3"),
+                        "question?"
+                );
+                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventQuestion);
+                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+
             }
         } catch (Exception e) {
             log.error("Got exception " + e);

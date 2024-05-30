@@ -5,10 +5,7 @@ import java.util.Objects;
 public class GameEventStateChange extends GameEventType {
     String state;
 
-    public GameEventStateChange() {
-    }
-
-    public GameEventStateChange(String state, int question_count) {
+    public GameEventStateChange(String state) {
         this.state = state;
     }
 
