@@ -2,6 +2,7 @@ package com.pulley.captrivia.resources;
 
 import com.google.common.collect.ImmutableList;
 import com.pulley.captrivia.model.game.Game;
+import com.pulley.captrivia.model.questions.Question;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -17,6 +18,20 @@ import java.util.UUID;
 @Slf4j
 public class GamesResource {
     static private List<Game> games = new ArrayList<Game>();
+    // it seems like we were only given one list of questions; share it.
+    static private List<Question> questions;
+
+    public GamesResource(List<Question> questions) {
+        this.questions = questions;
+    }
+
+    public static List<Question> getQuestions() {
+        return questions;
+    }
+
+    public static void setQuestions(List<Question> questions) {
+        GamesResource.questions = questions;
+    }
 
     // TODO: Fix this so that the data is not hardcoded and is in the right
     // shape that the frontend expects

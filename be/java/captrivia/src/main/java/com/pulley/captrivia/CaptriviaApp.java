@@ -44,7 +44,7 @@ public class CaptriviaApp extends Application<CaptriviaAppConfiguration> {
         // Set up the resources
         LeaderboardResource leaderboardResource = new LeaderboardResource();
         environment.jersey().register(leaderboardResource);
-        GamesResource gamesResource = new GamesResource();
+        GamesResource gamesResource = new GamesResource(questions);
         environment.jersey().register(gamesResource);
 
         websocket.addEndpoint(PlayerConnectServerEndpoint.class);

@@ -8,6 +8,7 @@ import com.pulley.captrivia.model.playercommand.*;
 import com.pulley.captrivia.model.playerevent.PlayerEvent;
 import com.pulley.captrivia.model.playerevent.PlayerEventConnect;
 import com.pulley.captrivia.model.playerevent.PlayerEventDisconnect;
+import com.pulley.captrivia.model.questions.Question;
 import com.pulley.captrivia.resources.GamesResource;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
@@ -178,12 +179,30 @@ public class PlayerConnectServerEndpoint {
 
                 GameEventQuestion gameEventQuestion = new GameEventQuestion(
                         playerCommandStart.getGame_id(),
-                        Arrays.asList("option1", "option2", "option3"),
-                        "question?"
+                        GamesResource.getQuestions().get(0).getOptions(),
+                        GamesResource.getQuestions().get(0).getQuestionText()
                 );
                 gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventQuestion);
                 sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
+            }
+
+            if (command.getPayload() instanceof PlayerCommandAnswer) {
+                PlayerCommandAnswer playerCommandAnswer = (PlayerCommandAnswer) command.getPayload();
+                Game game = GamesResource.getGame(playerCommandAnswer.getGame_id());
+                UUID questionId = playerCommandAnswer.getQuestion_id(); // TODO don't actually know how this maps to a question
+                // TODO don't hard code this question Index
+                int questionIndex = 0;
+                Question question = GamesResource.getQuestions().get(questionIndex);
+                if (question.getCorrectIndex() == playerCommandAnswer.getIndex()) {
+                    GameEventPlayerCorrect gameEventPlayerCorrect = new GameEventPlayerCorrect(game.getId(), getPlayerName(session));
+                    GameEvent gameEvent = new GameEvent(game.getId(), gameEventPlayerCorrect);
+                    sendObjectToPlayers(gameEvent, game.getPlayers());
+                } else {
+                    GameEventPlayerIncorrect gameEventPlayerIncorrect = new GameEventPlayerIncorrect(game.getId(), getPlayerName(session));
+                    GameEvent gameEvent = new GameEvent(game.getId(), gameEventPlayerIncorrect);
+                    sendObjectToPlayers(gameEvent, game.getPlayers());
+                }
             }
         } catch (Exception e) {
             log.error("Got exception " + e);
