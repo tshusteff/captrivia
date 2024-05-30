@@ -8,7 +8,7 @@ public class GameEventPlayerReady extends GameEventType {
     public GameEventPlayerReady() {
     }
 
-    public GameEventPlayerReady(String player, int question_count) {
+    public GameEventPlayerReady(String player) {
         this.player = player;
     }
 

@@ -5,15 +5,10 @@ import com.pulley.captrivia.model.playercommand.PlayerCommandCreate;
 
 import java.util.Objects;
 
-// need this because this is an empty bean
-@JsonSerialize
+
+@JsonSerialize // need this because this is an empty bean
 public class PlayerEventConnect extends PlayerEventType {
     public PlayerEventConnect() {
-    }
-
-    @Override
-    public String toString() {
-        return "PlayerEventConnect{}";
     }
 
     public boolean equals(Object o) {
@@ -24,6 +19,11 @@ public class PlayerEventConnect extends PlayerEventType {
 
     public int hashCode() {
         return Objects.hash(this.getClass());
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerEventConnect{}";
     }
 
 }

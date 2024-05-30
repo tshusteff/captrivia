@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
 
-// need this because this is an empty bean
-@JsonSerialize
+@JsonSerialize // need this because this is an empty bean
 public class PlayerEventDisconnect extends PlayerEventType {
     public PlayerEventDisconnect() {
     }

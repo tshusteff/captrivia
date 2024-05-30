@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulley.captrivia.model.game.Game;
 import com.pulley.captrivia.model.gameevent.*;
-import com.pulley.captrivia.model.playercommand.PlayerCommand;
-import com.pulley.captrivia.model.playercommand.PlayerCommandCreate;
-import com.pulley.captrivia.model.playercommand.PlayerCommandJoin;
+import com.pulley.captrivia.model.playercommand.*;
 import com.pulley.captrivia.model.playerevent.PlayerEvent;
 import com.pulley.captrivia.model.playerevent.PlayerEventConnect;
 import com.pulley.captrivia.model.playerevent.PlayerEventDisconnect;
@@ -56,7 +54,7 @@ public class PlayerConnectServerEndpoint {
         }
     }
 
-
+    // TODO do something with exceptions.
     private void broadcastObject(Object object) {
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -74,6 +72,25 @@ public class PlayerConnectServerEndpoint {
             log.error("Tried sending Object but got error " + ioException);
         }
     }
+    private void sendObjectToPlayers(Object object, List<String> players) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String JSONString = mapper.writeValueAsString(object);
+            for (Session currSession : sessions) {
+                if (currSession.isOpen()) {
+                    if (players.contains(getPlayerName(currSession))) {
+                        log.error("Sending Object "+object.toString()+" to player "+getPlayerName(currSession));
+                        currSession.getBasicRemote().sendText(JSONString);
+                    }
+                }
+            }
+            log.info("Tried sending text "+JSONString);
+        } catch (JsonProcessingException jsonProcessingException) {
+            log.error("Tried creating new Object json but got error " + jsonProcessingException.getMessage());
+        } catch (IOException ioException) {
+            log.error("Tried sending Object but got error " + ioException);
+        }
+    }
 
     @OnClose
     public void close(Session session) {
@@ -81,6 +98,9 @@ public class PlayerConnectServerEndpoint {
         PlayerEventDisconnect playerEventDisconnect = new PlayerEventDisconnect();
         PlayerEvent playerEvent = new PlayerEvent(getPlayerName(session), playerEventDisconnect);
         broadcastObject(playerEvent);
+
+        // TODO remove this player from all the games they played
+        // do I also need to remove the games owned by this player?
         sessions.removeIf(currentSession -> currentSession.getId().equals(session.getId()));
     }
 
@@ -126,13 +146,26 @@ public class PlayerConnectServerEndpoint {
                         new HashMap<String, Boolean>(),
                         GamesResource.getGame(playerCommandJoin.getGame_id()).getQuestion_count());
                 gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerEnter);
-                // TODO only send to player who joined game.
-                broadcastObject(gameEvent);
+                // only send to player who joined game.
+                sendObjectToPlayers(gameEvent, Arrays.asList(getPlayerName(session)));
 
                 GameEventPlayerJoin gameEventPlayerJoin = new GameEventPlayerJoin(getPlayerName(session));
                 gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerJoin);
-                broadcastObject(gameEvent);
+                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandJoin.getGame_id()).getPlayers());
+            }
 
+            if (command.getPayload() instanceof PlayerCommandReady) {
+                PlayerCommandReady playerCommandReady = (PlayerCommandReady) command.getPayload();
+                GameEventPlayerReady gameEventPlayerReady = new GameEventPlayerReady(getPlayerName(session));
+                GameEvent gameEvent = new GameEvent(playerCommandReady.getGame_id(), gameEventPlayerReady);
+                broadcastObject(gameEvent);
+            }
+
+            if (command.getPayload() instanceof PlayerCommandStart) {
+                PlayerCommandStart playerCommandStart = (PlayerCommandStart) command.getPayload();
+                GameEventStart gameEventStart = new GameEventStart();
+                GameEvent gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStart);
+                broadcastObject(gameEvent);
             }
         } catch (Exception e) {
             log.error("Got exception " + e);

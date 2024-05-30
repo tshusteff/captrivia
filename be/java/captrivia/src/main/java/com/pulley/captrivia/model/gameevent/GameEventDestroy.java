@@ -1,7 +1,10 @@
 package com.pulley.captrivia.model.gameevent;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 
+@JsonSerialize
 public class GameEventDestroy extends GameEventType {
 
     public GameEventDestroy() {
