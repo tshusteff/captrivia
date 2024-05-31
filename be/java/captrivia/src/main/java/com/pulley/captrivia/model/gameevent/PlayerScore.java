@@ -1,11 +1,16 @@
 package com.pulley.captrivia.model.gameevent;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 
+@JsonSerialize
 public class PlayerScore {
     String name;
     int score;
 
+
+    public PlayerScore() {}
 
     public PlayerScore(String name, int score) {
         this.name = name;

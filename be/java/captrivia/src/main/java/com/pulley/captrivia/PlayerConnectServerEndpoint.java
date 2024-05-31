@@ -80,7 +80,7 @@ public class PlayerConnectServerEndpoint {
                             ((sendToActivePlayers) && (specifiedPlayersInGame.contains(getPlayerName(currSession)))) ||
                             ((!sendToActivePlayers) && (!specifiedPlayersInGame.contains(getPlayerName(currSession))))
                     ) {
-                            log.error("Sending Object " + object.toString() + " to player " + getPlayerName(currSession));
+                            log.info("Sending Object " + object.toString() + " to player " + getPlayerName(currSession));
                             currSession.getBasicRemote().sendText(JSONString);
                     }
                 }
@@ -100,8 +100,8 @@ public class PlayerConnectServerEndpoint {
         PlayerEvent playerEvent = new PlayerEvent(getPlayerName(session), playerEventDisconnect);
         broadcastObject(playerEvent);
 
-        // TODO remove this player from all the games they played
-        // do I also need to remove the games owned by this player?
+        GamesResource.removePlayerFromAllGames(getPlayerName(session));
+        // TODO do I also need to remove the games owned by this player?
         sessions.removeIf(currentSession -> currentSession.getId().equals(session.getId()));
     }
 
@@ -173,17 +173,23 @@ public class PlayerConnectServerEndpoint {
                 gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStateChange);
                 sendObjectToNonPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
-                GameEventCountdown gameEventCountdown = new GameEventCountdown(5);
-                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventCountdown);
-                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+//                GameEventCountdown gameEventCountdown = new GameEventCountdown(5);
+//                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventCountdown);
+//                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
-                GameEventQuestion gameEventQuestion = new GameEventQuestion(
-                        playerCommandStart.getGame_id(),
-                        GamesResource.getQuestions().get(0).getOptions(),
-                        GamesResource.getQuestions().get(0).getQuestionText()
-                );
-                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventQuestion);
-                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+                Game game = GamesResource.getGame(playerCommandStart.getGame_id());
+                if (game.getQuestion_count() > 0 ) {
+                    GameEventQuestion gameEventQuestion = new GameEventQuestion(
+                            playerCommandStart.getGame_id(),
+                            GamesResource.getQuestions().get(0).getOptions(),
+                            GamesResource.getQuestions().get(0).getQuestionText(),
+                            10
+                    );
+                    gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventQuestion);
+                    sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+                } else {
+                    // no questions to ask.
+                }
 
             }
 
@@ -191,17 +197,35 @@ public class PlayerConnectServerEndpoint {
                 PlayerCommandAnswer playerCommandAnswer = (PlayerCommandAnswer) command.getPayload();
                 Game game = GamesResource.getGame(playerCommandAnswer.getGame_id());
                 UUID questionId = playerCommandAnswer.getQuestion_id(); // TODO don't actually know how this maps to a question
-                // TODO don't hard code this question Index
-                int questionIndex = 0;
-                Question question = GamesResource.getQuestions().get(questionIndex);
+                int currentQuestionIndex = game.getCurrentQuestionIndex();
+                Question question = GamesResource.getQuestions().get(currentQuestionIndex);
                 if (question.getCorrectIndex() == playerCommandAnswer.getIndex()) {
                     GameEventPlayerCorrect gameEventPlayerCorrect = new GameEventPlayerCorrect(game.getId(), getPlayerName(session));
                     GameEvent gameEvent = new GameEvent(game.getId(), gameEventPlayerCorrect);
                     sendObjectToPlayers(gameEvent, game.getPlayers());
+                    game.addPointForPlayer(getPlayerName(session));
                 } else {
                     GameEventPlayerIncorrect gameEventPlayerIncorrect = new GameEventPlayerIncorrect(game.getId(), getPlayerName(session));
                     GameEvent gameEvent = new GameEvent(game.getId(), gameEventPlayerIncorrect);
                     sendObjectToPlayers(gameEvent, game.getPlayers());
+                }
+
+                // ask another question
+                if (currentQuestionIndex < game.getQuestion_count()) {
+                    GameEventQuestion gameEventQuestion = new GameEventQuestion(
+                            playerCommandAnswer.getGame_id(),
+                            GamesResource.getQuestions().get(currentQuestionIndex).getOptions(),
+                            GamesResource.getQuestions().get(currentQuestionIndex).getQuestionText(),
+                            10
+                    );
+                    GameEvent gameEvent = new GameEvent(playerCommandAnswer.getGame_id(), gameEventQuestion);
+                    sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
+                    game.setCurrentQuestionIndex(currentQuestionIndex + 1);
+                } else {
+                    // we've asked all the questions. game over
+                    GameEventEnd gameEventEnd = new GameEventEnd(game.getPlayerScores());
+                    GameEvent gameEvent = new GameEvent(game.getId(), gameEventEnd);
+                    sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
                 }
             }
         } catch (Exception e) {

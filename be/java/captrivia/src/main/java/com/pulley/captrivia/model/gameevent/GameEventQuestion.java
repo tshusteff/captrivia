@@ -6,14 +6,17 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class GameEventQuestion extends GameEventType {
-    UUID id;
-    List<String> options;
-    String question;
+    private UUID id;
+    private List<String> options;
+    private String question;
 
-    public GameEventQuestion(UUID id, List<String> options, String question) {
+    private int seconds;
+
+    public GameEventQuestion(UUID id, List<String> options, String question, int seconds) {
         this.id = id;
         this.options = options;
         this.question = question;
+        this.seconds = seconds;
     }
 
     public UUID getId() {
@@ -30,6 +33,11 @@ public class GameEventQuestion extends GameEventType {
 
     public void setOptions(List<String> options) {
         this.options = options;
+    }
+
+    public int getSeconds() {return seconds;}
+    public void setSeconds(int seconds) {
+        this.seconds = seconds;
     }
 
     public String getQuestion() {

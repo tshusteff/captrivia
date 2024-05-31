@@ -65,5 +65,14 @@ public class GamesResource {
         }
     }
 
+    public static void removePlayerFromAllGames(String player) {
+        for (Game game : games) {
+            boolean playerInGame = game.getPlayers().remove(player);
+            if (playerInGame) {
+                game.setPlayer_count(game.getPlayer_count()-1);
+            }
+        }
+    }
+
 }
 

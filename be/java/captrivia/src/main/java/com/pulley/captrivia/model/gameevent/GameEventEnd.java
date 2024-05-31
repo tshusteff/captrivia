@@ -1,12 +1,23 @@
 package com.pulley.captrivia.model.gameevent;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class GameEventEnd extends GameEventType {
-    PlayerScore[] scores;
+    List<PlayerScore> scores;
 
-    public GameEventEnd(PlayerScore[] scores) {
+    public GameEventEnd(){};
+
+    public GameEventEnd(List<PlayerScore> scores) {
+        this.scores = scores;
+    }
+
+    public List<PlayerScore> getScores() {
+        return scores;
+    }
+
+    public void setPlayers(List<PlayerScore> scores) {
         this.scores = scores;
     }
 
@@ -15,18 +26,18 @@ public class GameEventEnd extends GameEventType {
         if (this == o) return true;
         if (!(o instanceof GameEventEnd)) return false;
         GameEventEnd that = (GameEventEnd) o;
-        return Arrays.equals(scores, that.scores);
+        return getScores().equals(that.getScores());
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(scores);
+        return Objects.hash(getScores());
     }
 
     @Override
     public String toString() {
         return "GameEventEnd{" +
-                "scores=" + Arrays.toString(scores) +
+                ", scores=" + scores +
                 '}';
     }
 }

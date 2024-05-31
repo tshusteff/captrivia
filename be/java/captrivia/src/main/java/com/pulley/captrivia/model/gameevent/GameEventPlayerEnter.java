@@ -10,6 +10,8 @@ public class GameEventPlayerEnter extends GameEventType {
     Map<String, Boolean> players_ready;
     int question_count;
 
+    public GameEventPlayerEnter(){};
+
     public GameEventPlayerEnter(String name, List<String> players, Map<String, Boolean> players_ready, int question_count) {
         this.name = name;
         this.players = players;
