@@ -44,6 +44,10 @@ public class GamesResource {
         games.add(game);
     }
 
+    public static void removeGame(Game game) {
+        games.remove(game);
+    }
+
     public static Game getGame(UUID gameId) {
         Game theGame = games.stream()
                 .filter( game -> game.getId().equals(gameId))

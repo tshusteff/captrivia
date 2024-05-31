@@ -3,16 +3,11 @@ package com.pulley.captrivia.model.leaderboard;
 public class LeaderboardEntry {
     private String name;
     //        private double score;
-    private double acc;
-    private double avgSec;
     private int numCorrect;
     private int numQuestion;
 
-    public LeaderboardEntry(String name, double acc, double avgSec, int numCorrect, int numQuestion) {
+    public LeaderboardEntry(String name, int numCorrect, int numQuestion) {
         this.name = name;
-//            this.score = score;
-        this.acc = acc;
-        this.avgSec = avgSec;
         this.numCorrect = numCorrect;
         this.numQuestion = numQuestion;
 
@@ -22,22 +17,15 @@ public class LeaderboardEntry {
         return name;
     }
 
-    //        public double getScore() {
-//            return score;
-//        }
-    public double getAcc() {
-        return acc;
-    }
-
-    public double getAvgSec() {
-        return avgSec;
-    }
-
     public int getNumCorrect() {
         return numCorrect;
     }
 
     public int getNumQuestion() {
         return numQuestion;
+    }
+
+    public int getacc() {
+        return numCorrect / numQuestion;
     }
 }

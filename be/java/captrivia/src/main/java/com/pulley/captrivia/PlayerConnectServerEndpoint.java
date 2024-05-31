@@ -41,9 +41,9 @@ public class PlayerConnectServerEndpoint {
         String queryString = session.getQueryString();
         String playerName = getPlayerName(session);
         log.info("Server: Session Open with name "+playerName+".");
-        log.info("Server: Session Open welcome playerNameParamValue "+playerName);
-        if (playerName == null) {
+        if (playerName == null || playerName.equals("")) {
             log.info("Server: Session Open whoops no name");
+            throw new IllegalArgumentException("You must specify a name");
         } else {
             log.info("Server: Session Open glad you are here "+playerName);
             // PlayerEventConnect
@@ -51,6 +51,8 @@ public class PlayerConnectServerEndpoint {
             PlayerEvent playerEvent = new PlayerEvent(playerName, playerEventConnect);
             sessions.add(session);
             broadcastObject(playerEvent);
+
+            // TODO: Maybe have to tell this player about all pre-existing Games?
         }
     }
 
@@ -173,11 +175,9 @@ public class PlayerConnectServerEndpoint {
                 gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStateChange);
                 sendObjectToNonPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
-//                GameEventCountdown gameEventCountdown = new GameEventCountdown(5);
-//                gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventCountdown);
-//                sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
                 Game game = GamesResource.getGame(playerCommandStart.getGame_id());
+                // Ask first question
                 if (game.getQuestion_count() > 0 ) {
                     GameEventQuestion gameEventQuestion = new GameEventQuestion(
                             playerCommandStart.getGame_id(),
@@ -210,7 +210,13 @@ public class PlayerConnectServerEndpoint {
                     sendObjectToPlayers(gameEvent, game.getPlayers());
                 }
 
+                GameEventCountdown gameEventCountdown = new GameEventCountdown(5);
+                GameEvent gameEvent = new GameEvent(game.getId(), gameEventCountdown);
+                sendObjectToPlayers(gameEvent, GamesResource.getGame(game.getId()).getPlayers());
+
                 // ask another question
+                currentQuestionIndex++;
+                game.setCurrentQuestionIndex(currentQuestionIndex);
                 if (currentQuestionIndex < game.getQuestion_count()) {
                     GameEventQuestion gameEventQuestion = new GameEventQuestion(
                             playerCommandAnswer.getGame_id(),
@@ -218,13 +224,19 @@ public class PlayerConnectServerEndpoint {
                             GamesResource.getQuestions().get(currentQuestionIndex).getQuestionText(),
                             10
                     );
-                    GameEvent gameEvent = new GameEvent(playerCommandAnswer.getGame_id(), gameEventQuestion);
+                    gameEvent = new GameEvent(playerCommandAnswer.getGame_id(), gameEventQuestion);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
-                    game.setCurrentQuestionIndex(currentQuestionIndex + 1);
                 } else {
                     // we've asked all the questions. game over
                     GameEventEnd gameEventEnd = new GameEventEnd(game.getPlayerScores());
-                    GameEvent gameEvent = new GameEvent(game.getId(), gameEventEnd);
+                    gameEvent = new GameEvent(game.getId(), gameEventEnd);
+                    sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
+
+                    // remove the game
+                    GamesResource.removeGame(game);
+
+                    GameEventDestroy gameEventDestroy = new GameEventDestroy();
+                    gameEvent = new GameEvent(game.getId(), gameEventDestroy);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
                 }
             }

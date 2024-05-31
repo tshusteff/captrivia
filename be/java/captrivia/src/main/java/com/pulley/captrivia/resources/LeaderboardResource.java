@@ -18,10 +18,8 @@ public class LeaderboardResource {
     @GET
     public List<LeaderboardEntry> getLeaderboard() {
         List<LeaderboardEntry> leaderboard = ImmutableList.of(
-            new LeaderboardEntry("Alice", 89.79, .5, 1, 3 ),
-            new LeaderboardEntry("John", 65.35,.5, 1, 2 ),
-            new LeaderboardEntry("James", 15.92, .5, 1, 5),
-            new LeaderboardEntry("Janice", 3.14, .5, 8, 7)
+            new LeaderboardEntry("Alice", 3, 5),
+            new LeaderboardEntry("John", 2,6 )
         );
 
         return leaderboard;

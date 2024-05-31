@@ -14,7 +14,7 @@ public class Game {
 
         private int player_count = 0;
 
-        private int currentQuestionIndex = 0;
+        private int currentQuestionIndex;
 
         private String state = "initialize";
 
