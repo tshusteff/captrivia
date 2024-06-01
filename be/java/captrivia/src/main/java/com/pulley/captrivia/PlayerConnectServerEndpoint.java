@@ -138,16 +138,17 @@ public class PlayerConnectServerEndpoint {
             }
             if (command.getPayload() instanceof PlayerCommandJoin) {
                 PlayerCommandJoin playerCommandJoin = (PlayerCommandJoin) command.getPayload();
-                int playerCount = GamesResource.addPlayerToGame(playerCommandJoin.getGame_id(), getPlayerName(session));
+                Game game = GamesResource.getGame(playerCommandJoin.getGame_id());
+                int playerCount = GamesResource.addPlayerToGame(game.getId(), getPlayerName(session));
                 GameEventPlayerCount gameEventPlayerCount = new GameEventPlayerCount(playerCount);
                 GameEvent gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerCount);
                 broadcastObject(gameEvent);
 
                 GameEventPlayerEnter gameEventPlayerEnter = new GameEventPlayerEnter(
                         getPlayerName(session),
-                        GamesResource.getGame(playerCommandJoin.getGame_id()).getPlayers(),
-                        new HashMap<String, Boolean>(),
-                        GamesResource.getGame(playerCommandJoin.getGame_id()).getQuestion_count());
+                        game.getPlayers(),
+                        game.getPlayersReady(),
+                        game.getQuestion_count());
                 gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerEnter);
                 // only send to player who joined game.
                 sendObjectToPlayers(gameEvent, Arrays.asList(getPlayerName(session)));
@@ -159,6 +160,8 @@ public class PlayerConnectServerEndpoint {
 
             if (command.getPayload() instanceof PlayerCommandReady) {
                 PlayerCommandReady playerCommandReady = (PlayerCommandReady) command.getPayload();
+                Game game = GamesResource.getGame(playerCommandReady.getGame_id());
+                game.setPlayerReady(getPlayerName(session));
                 GameEventPlayerReady gameEventPlayerReady = new GameEventPlayerReady(getPlayerName(session));
                 GameEvent gameEvent = new GameEvent(playerCommandReady.getGame_id(), gameEventPlayerReady);
                 sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandReady.getGame_id()).getPlayers());

@@ -22,6 +22,8 @@ public class Game {
 
         private Map<String, Integer> playerScores = new HashMap<String, Integer>();
 
+        private Map<String, Boolean> playersReady = new HashMap<String, Boolean>();
+
     public Game(String name, int question_count) {
         this.id = UUID.randomUUID();
         this.name = name;
@@ -59,7 +61,6 @@ public class Game {
     }
 
     public void setState(String state) {
-        log.info("State on Game "+this.getId()+" just changed to "+state);
         this.state = state;
     }
 
@@ -79,7 +80,16 @@ public class Game {
                 }
             }
             players.add(playerName);
+            playersReady.put(playerName, false);
             player_count++;
+    }
+
+    public void setPlayerReady(String playerName) {
+        playersReady.put(playerName, true);
+    }
+
+    public Map<String, Boolean>getPlayersReady() {
+        return playersReady;
     }
 
     public void addPointForPlayer(String playerName) {
