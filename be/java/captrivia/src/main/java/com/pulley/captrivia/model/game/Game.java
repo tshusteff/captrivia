@@ -16,7 +16,7 @@ public class Game {
 
         private int currentQuestionIndex;
 
-        private String state = "initialize";
+        private String state = "waiting";
 
         private List<String> players = new ArrayList<String>();
 

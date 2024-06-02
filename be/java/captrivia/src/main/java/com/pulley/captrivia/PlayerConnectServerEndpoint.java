@@ -116,10 +116,6 @@ public class PlayerConnectServerEndpoint {
         log.info("Server: Received Message: {}", message);
         Set<Session> allSessions = session.getOpenSessions();
 
-//        if (!message.equals("ping")) {
-//            throw new IllegalArgumentException("Invalid message received: " + message);
-//        }
-
         try {
             ObjectMapper mapper = new ObjectMapper();
             PlayerCommand command = mapper.readValue(message, PlayerCommand.class);

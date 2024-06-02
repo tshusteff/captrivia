@@ -17,12 +17,13 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 @Slf4j
 public class GamesResource {
-    static private List<Game> games = new ArrayList<Game>();
+    static private List<Game> games;
     // it seems like we were only given one list of questions; share it.
     static private List<Question> questions;
 
     public GamesResource(List<Question> questions) {
         this.questions = questions;
+        this.games = new ArrayList<Game>();
     }
 
     public static List<Question> getQuestions() {
@@ -33,8 +34,6 @@ public class GamesResource {
         GamesResource.questions = questions;
     }
 
-    // TODO: Fix this so that the data is not hardcoded and is in the right
-    // shape that the frontend expects
     @GET
     public List<Game> getGames() {
         return games;
