@@ -72,16 +72,17 @@ public class Game {
         this.players = players;
     }
 
-    public void addPlayer(String playerName) {
+    public int addPlayer(String playerName) {
             for (String player : players) {
                 if (player.equals(playerName)) {
                     // don't add same player a second time
-                    return;
+                    return player_count;
                 }
             }
             players.add(playerName);
             playersReady.put(playerName, false);
             player_count++;
+            return player_count;
     }
 
     public void setPlayerReady(String playerName) {

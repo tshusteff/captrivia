@@ -21,6 +21,8 @@ import java.util.*;
 @Slf4j
 public class PlayerConnectServerEndpoint {
     private static List<Session> sessions = new ArrayList<>();
+    private final int QUESTION_SECONDS = 10;
+    private final int COUNTDOWN_SECONDS = 10;
 
     private String getPlayerName(Session session) {
         String queryString = session.getQueryString();
@@ -135,7 +137,7 @@ public class PlayerConnectServerEndpoint {
             if (command.getPayload() instanceof PlayerCommandJoin) {
                 PlayerCommandJoin playerCommandJoin = (PlayerCommandJoin) command.getPayload();
                 Game game = GamesResource.getGame(playerCommandJoin.getGame_id());
-                int playerCount = GamesResource.addPlayerToGame(game.getId(), getPlayerName(session));
+                int playerCount = game.addPlayer(getPlayerName(session));
                 GameEventPlayerCount gameEventPlayerCount = new GameEventPlayerCount(playerCount);
                 GameEvent gameEvent = new GameEvent(playerCommandJoin.getGame_id(), gameEventPlayerCount);
                 broadcastObject(gameEvent);
@@ -166,28 +168,28 @@ public class PlayerConnectServerEndpoint {
 
             if (command.getPayload() instanceof PlayerCommandStart) {
                 PlayerCommandStart playerCommandStart = (PlayerCommandStart) command.getPayload();
+                Game game = GamesResource.getGame(playerCommandStart.getGame_id());
                 GameEventStart gameEventStart = new GameEventStart();
-                GameEvent gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStart);
+                GameEvent gameEvent = new GameEvent(game.getId(), gameEventStart);
                 sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
-                GameEventStateChange gameEventStateChange = new GameEventStateChange("countdown");
+                game.setState("start");
+                GameEventStateChange gameEventStateChange = new GameEventStateChange("start");
                 gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventStateChange);
                 sendObjectToNonPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
 
-
-                Game game = GamesResource.getGame(playerCommandStart.getGame_id());
                 // Ask first question
                 if (game.getQuestion_count() > 0 ) {
                     GameEventQuestion gameEventQuestion = new GameEventQuestion(
                             playerCommandStart.getGame_id(),
                             GamesResource.getQuestions().get(0).getOptions(),
                             GamesResource.getQuestions().get(0).getQuestionText(),
-                            10
+                            QUESTION_SECONDS
                     );
                     gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventQuestion);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
                 } else {
-                    // no questions to ask.
+                    // TODO: no questions to ask. does frontend allow this?
                 }
 
             }
@@ -221,22 +223,27 @@ public class PlayerConnectServerEndpoint {
                             playerCommandAnswer.getGame_id(),
                             GamesResource.getQuestions().get(currentQuestionIndex).getOptions(),
                             GamesResource.getQuestions().get(currentQuestionIndex).getQuestionText(),
-                            10
+                            QUESTION_SECONDS
                     );
                     gameEvent = new GameEvent(playerCommandAnswer.getGame_id(), gameEventQuestion);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
                 } else {
                     // we've asked all the questions. game over
-                    GameEventEnd gameEventEnd = new GameEventEnd(game.getPlayerScores());
+                    List<PlayerScore> playerScores = game.getPlayerScores();
+                    log.info("Player Scores is "+playerScores);
+                    playerScores.sort( (playerScore1, playerScore2) -> playerScore2.getScore() - playerScore1.getScore() );
+                    log.info("Player Scores sorted is "+playerScores);
+                    GameEventEnd gameEventEnd = new GameEventEnd(playerScores);
                     gameEvent = new GameEvent(game.getId(), gameEventEnd);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
 
-                    // remove the game
-                    GamesResource.removeGame(game);
+                    // TODO: here is where I could update the Leaderboard
 
                     GameEventDestroy gameEventDestroy = new GameEventDestroy();
                     gameEvent = new GameEvent(game.getId(), gameEventDestroy);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
+                    // remove the game
+                    GamesResource.removeGame(game);
                 }
             }
         } catch (Exception e) {
