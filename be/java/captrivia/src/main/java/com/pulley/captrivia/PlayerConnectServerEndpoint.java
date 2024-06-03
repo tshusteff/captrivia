@@ -47,6 +47,12 @@ public class PlayerConnectServerEndpoint {
             log.info("Server: Session Open whoops no name");
             throw new IllegalArgumentException("You must specify a name");
         } else {
+            for (Session currSession : sessions) {
+                if (getPlayerName(currSession).equals(getPlayerName(session))) {
+                    log.info("Server: Session Open whoops repeat name");
+                    throw new IllegalArgumentException("User name "+getPlayerName(session)+" already in use");
+                }
+            }
             log.info("Server: Session Open glad you are here "+playerName);
             // PlayerEventConnect
             PlayerEventConnect playerEventConnect = new PlayerEventConnect();
@@ -54,7 +60,6 @@ public class PlayerConnectServerEndpoint {
             sessions.add(session);
             broadcastObject(playerEvent);
 
-            // TODO: Maybe have to tell this player about all pre-existing Games?
         }
     }
 
