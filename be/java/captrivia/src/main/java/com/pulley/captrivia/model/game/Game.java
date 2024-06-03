@@ -85,6 +85,13 @@ public class Game {
             return player_count;
     }
 
+    public void removePlayer(String playerName) {
+        boolean playerInGame = getPlayers().remove(playerName);
+        if (playerInGame) {
+            setPlayer_count(getPlayer_count()-1);
+        }
+    }
+
     public void setPlayerReady(String playerName) {
         playersReady.put(playerName, true);
     }
@@ -105,6 +112,8 @@ public class Game {
             PlayerScore playerScore = new PlayerScore(entry.getKey(), entry.getValue());
             playerScoreList.add(playerScore);
         }
+        // sort desc by score
+        playerScoreList.sort( (playerScore1, playerScore2) -> playerScore2.getScore() - playerScore1.getScore() );
         return playerScoreList;
     }
 

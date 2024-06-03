@@ -56,13 +56,15 @@ public class GamesResource {
     }
 
 
-    public static void removePlayerFromAllGames(String player) {
-        for (Game game : games) {
-            boolean playerInGame = game.getPlayers().remove(player);
+    public static List<Game> getGamesPlayerIsIn(String player) {
+        ArrayList<Game> gamesPlayerIsIn = new ArrayList<Game>();
+        for (Game game : games ) {
+            boolean playerInGame = game.getPlayers().contains(player);
             if (playerInGame) {
-                game.setPlayer_count(game.getPlayer_count()-1);
+                gamesPlayerIsIn.add(game);
             }
         }
+        return gamesPlayerIsIn;
     }
 
 }

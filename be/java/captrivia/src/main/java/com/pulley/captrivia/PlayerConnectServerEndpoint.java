@@ -104,13 +104,19 @@ public class PlayerConnectServerEndpoint {
         PlayerEvent playerEvent = new PlayerEvent(getPlayerName(session), playerEventDisconnect);
         broadcastObject(playerEvent);
 
-        GamesResource.removePlayerFromAllGames(getPlayerName(session));
-        // TODO do I also need to remove the games owned by this player?
+        List<Game> gamesPlayerIsIn = GamesResource.getGamesPlayerIsIn(getPlayerName(session));
+        GameEventPlayerLeave gameEventPlayerLeave = new GameEventPlayerLeave(getPlayerName(session));
+        for (Game game : gamesPlayerIsIn) {
+            GameEvent gameEvent = new GameEvent(game.getId(), gameEventPlayerLeave);
+            sendObjectToPlayers(gameEvent, game.getPlayers());
+            game.removePlayer(getPlayerName(session));
+        }
         sessions.removeIf(currentSession -> currentSession.getId().equals(session.getId()));
     }
 
     @OnError
     public void onError(Throwable error) {
+        log.error("WebSocket Error",error);
     }
 
     @OnMessage
@@ -231,8 +237,6 @@ public class PlayerConnectServerEndpoint {
                     // we've asked all the questions. game over
                     List<PlayerScore> playerScores = game.getPlayerScores();
                     log.info("Player Scores is "+playerScores);
-                    playerScores.sort( (playerScore1, playerScore2) -> playerScore2.getScore() - playerScore1.getScore() );
-                    log.info("Player Scores sorted is "+playerScores);
                     GameEventEnd gameEventEnd = new GameEventEnd(playerScores);
                     gameEvent = new GameEvent(game.getId(), gameEventEnd);
                     sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());

@@ -8,7 +8,7 @@ public class GameEventPlayerLeave extends GameEventType {
     public GameEventPlayerLeave() {
     }
 
-    public GameEventPlayerLeave(String player, int question_count) {
+    public GameEventPlayerLeave(String player) {
         this.player = player;
     }
 
