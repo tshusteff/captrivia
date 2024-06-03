@@ -191,16 +191,9 @@ public class PlayerConnectServerEndpoint {
 
                 // Ask first question
                 if (game.getQuestion_count() > 0 ) {
-                    GameEventQuestion gameEventQuestion = new GameEventQuestion(
-                            playerCommandStart.getGame_id(),
-                            GamesResource.getQuestions().get(0).getOptions(),
-                            GamesResource.getQuestions().get(0).getQuestionText(),
-                            QUESTION_SECONDS
-                    );
-                    gameEvent = new GameEvent(playerCommandStart.getGame_id(), gameEventQuestion);
-                    sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandStart.getGame_id()).getPlayers());
+                    askQuestion(0, game);
                 } else {
-                    // TODO: no questions to ask. does frontend allow this?
+                    // no questions to ask. Front end prohibits.
                 }
 
             }
@@ -230,14 +223,7 @@ public class PlayerConnectServerEndpoint {
                 currentQuestionIndex++;
                 game.setCurrentQuestionIndex(currentQuestionIndex);
                 if (currentQuestionIndex < game.getQuestion_count()) {
-                    GameEventQuestion gameEventQuestion = new GameEventQuestion(
-                            playerCommandAnswer.getGame_id(),
-                            GamesResource.getQuestions().get(currentQuestionIndex).getOptions(),
-                            GamesResource.getQuestions().get(currentQuestionIndex).getQuestionText(),
-                            QUESTION_SECONDS
-                    );
-                    gameEvent = new GameEvent(playerCommandAnswer.getGame_id(), gameEventQuestion);
-                    sendObjectToPlayers(gameEvent, GamesResource.getGame(playerCommandAnswer.getGame_id()).getPlayers());
+                    askQuestion(currentQuestionIndex, game);
                 } else {
                     // we've asked all the questions. game over
                     List<PlayerScore> playerScores = game.getPlayerScores();
@@ -258,6 +244,17 @@ public class PlayerConnectServerEndpoint {
         } catch (Exception e) {
             log.error("Got exception " + e);
         }
+    }
+
+    private void askQuestion(int questionIndex, Game game) throws IOException {
+        GameEventQuestion gameEventQuestion = new GameEventQuestion(
+                game.getId(),
+                GamesResource.getQuestions().get(questionIndex).getOptions(),
+                GamesResource.getQuestions().get(questionIndex).getQuestionText(),
+                QUESTION_SECONDS
+        );
+        GameEvent gameEvent = new GameEvent(game.getId(), gameEventQuestion);
+        sendObjectToPlayers(gameEvent, game.getPlayers());
     }
 
 }
