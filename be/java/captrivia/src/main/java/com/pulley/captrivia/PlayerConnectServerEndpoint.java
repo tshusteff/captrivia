@@ -39,7 +39,7 @@ public class PlayerConnectServerEndpoint {
     }
 
     @OnOpen
-    public void open(Session session) throws JsonProcessingException {
+    public void open(Session session) throws IOException {
         String queryString = session.getQueryString();
         String playerName = getPlayerName(session);
         log.info("Server: Session Open with name "+playerName+".");
@@ -63,47 +63,41 @@ public class PlayerConnectServerEndpoint {
         }
     }
 
-    private void broadcastObject(Object object) {
+    private void broadcastObject(Object object) throws IOException {
         sendObjectToPlayersInOrOutOfGame(object, null, true);
     }
-    private void sendObjectToPlayers(Object object, List<String> specifiedPlayersInGame) {
+    private void sendObjectToPlayers(Object object, List<String> specifiedPlayersInGame) throws IOException {
         sendObjectToPlayersInOrOutOfGame(object, specifiedPlayersInGame, true);
     }
 
-    private void sendObjectToNonPlayers(Object object, List<String> specifiedPlayersInGame) {
+    private void sendObjectToNonPlayers(Object object, List<String> specifiedPlayersInGame) throws IOException {
         sendObjectToPlayersInOrOutOfGame(object, specifiedPlayersInGame, false);
     }
 
-    // TODO do something with exceptions.
-    // for all players, use playersInGame as null
+    // For all players, use playersInGame as null
     // otherwise, send playersInGame as list of players in game
     // sendToActivePlayers = true to send to all players in game
     // sendToActivePlayers = false to send to all players not in game
-    private void sendObjectToPlayersInOrOutOfGame(Object object, List<String> specifiedPlayersInGame, boolean sendToActivePlayers) {
+    private void sendObjectToPlayersInOrOutOfGame(Object object, List<String> specifiedPlayersInGame, boolean sendToActivePlayers)
+            throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        try {
-            String JSONString = mapper.writeValueAsString(object);
-            for (Session currSession : sessions) {
-                if (currSession.isOpen()) {
-                    if (    specifiedPlayersInGame == null ||
-                            ((sendToActivePlayers) && (specifiedPlayersInGame.contains(getPlayerName(currSession)))) ||
-                            ((!sendToActivePlayers) && (!specifiedPlayersInGame.contains(getPlayerName(currSession))))
-                    ) {
-                            log.info("Sending Object " + object.toString() + " to player " + getPlayerName(currSession));
-                            currSession.getBasicRemote().sendText(JSONString);
-                    }
+        String JSONString = mapper.writeValueAsString(object);
+        for (Session currSession : sessions) {
+            if (currSession.isOpen()) {
+                if (    specifiedPlayersInGame == null ||
+                        ((sendToActivePlayers) && (specifiedPlayersInGame.contains(getPlayerName(currSession)))) ||
+                        ((!sendToActivePlayers) && (!specifiedPlayersInGame.contains(getPlayerName(currSession))))
+                ) {
+                        log.info("Sending Object " + object.toString() + " to player " + getPlayerName(currSession));
+                        currSession.getBasicRemote().sendText(JSONString);
                 }
             }
-            log.info("Tried sending text "+JSONString);
-        } catch (JsonProcessingException jsonProcessingException) {
-            log.error("Tried creating new Object json but got error " + jsonProcessingException.getMessage());
-        } catch (IOException ioException) {
-            log.error("Tried sending Object but got error " + ioException);
         }
+        log.info("Sending text "+JSONString);
     }
 
     @OnClose
-    public void close(Session session) {
+    public void close(Session session) throws IOException {
         log.info("Server: Session Close");
         PlayerEventDisconnect playerEventDisconnect = new PlayerEventDisconnect();
         PlayerEvent playerEvent = new PlayerEvent(getPlayerName(session), playerEventDisconnect);
@@ -122,6 +116,12 @@ public class PlayerConnectServerEndpoint {
     @OnError
     public void onError(Throwable error) {
         log.error("WebSocket Error",error);
+        if (error instanceof JsonProcessingException)  {
+            log.error("Tried creating new Object json but got error " + error.getMessage());
+        }
+        if (error instanceof IOException) {
+            log.error("Tried sending Object but got error " + error.getMessage());
+        }
     }
 
     @OnMessage
